@@ -104,6 +104,7 @@
             font-size: 16px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            width: 300px;
         }
 
         button {
@@ -128,6 +129,22 @@
             padding: 15px;
             margin: 20px 0;
         }
+
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .error-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -144,10 +161,15 @@
     <div class="container">
         <h1>Vantaan avoimet työpaikat</h1>
         
+        <div class="warning-box">
+            <p><strong>Huom!</strong> Tämä sivu käyttää CORS-proxya (allorigins.win) API-pyyntöjen välittämiseen.</p>
+            <p>Jos sivu ei toimi, proxy-palvelu saattaa olla tilapäisesti pois käytöstä.</p>
+        </div>
+        
         <div class="ala-valinta">
             <label for="ala">Valitse ala:</label>
             <select id="ala">
-                <option value="">-- Valitse ala --</option>
+                <option value="">-- Ladataan aloja... --</option>
             </select>
             <button onclick="haeTyopaikat()">Hae työpaikat</button>
         </div>
@@ -165,13 +187,24 @@
             }
         }
 
+        // CORS-proxy URL
+        var corsProxy = 'https://api.allorigins.win/raw?url=';
+        var apiBaseUrl = 'http://gis.vantaa.fi/rest/tyopaikat/v1';
+
         // Haetaan ensin saatavilla olevat alat
-        fetch('http://gis.vantaa.fi/rest/tyopaikat/v1')
+        fetch(corsProxy + encodeURIComponent(apiBaseUrl))
             .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
                 return response.json();
             })
             .then(function(data) {
+                console.log('Haettu data:', data);
                 var selectElement = document.getElementById('ala');
+                
+                // Tyhjennetään "Ladataan..." teksti
+                selectElement.innerHTML = '<option value="">-- Valitse ala --</option>';
                 
                 // Data on taulukko objekteja, käydään läpi
                 for (var i = 0; i < data.length; i++) {
@@ -182,19 +215,28 @@
                 }
                 
                 document.getElementById('tyopaikat').innerHTML = 
-                    '<div class="info-box"><p>Valitse ala pudotusvalikosta ja paina "Hae työpaikat" -nappia.</p></div>';
+                    '<div class="info-box"><p>✓ Alat ladattu onnistuneesti! Valitse ala pudotusvalikosta ja paina "Hae työpaikat" -nappia.</p></div>';
             })
             .catch(function(error) {
                 console.error('Virhe alojen haussa:', error);
+                document.getElementById('ala').innerHTML = '<option value="">-- Virhe ladattaessa --</option>';
                 document.getElementById('tyopaikat').innerHTML = 
+                    '<div class="error-box">' +
                     '<p><strong>Virhe alojen haussa!</strong></p>' +
-                    '<p>Syy: ' + error.message + '</p>' +
-                    '<p><strong>Ratkaisuvaihtoehdot:</strong></p>' +
+                    '<p>Virheviesti: ' + error.message + '</p>' +
+                    '<p><strong>Mahdolliset syyt:</strong></p>' +
                     '<ul>' +
-                    '<li>Varmista, että internet-yhteys toimii</li>' +
-                    '<li>Kokeile päivittää sivu (F5)</li>' +
-                    '<li>API saattaa olla tilapäisesti pois käytöstä</li>' +
-                    '</ul>';
+                    '<li>CORS-proxy (allorigins.win) ei ole käytettävissä</li>' +
+                    '<li>Vantaan API ei vastaa</li>' +
+                    '<li>Internet-yhteys ei toimi</li>' +
+                    '</ul>' +
+                    '<p><strong>Ratkaisut:</strong></p>' +
+                    '<ul>' +
+                    '<li>Odota hetki ja päivitä sivu (F5)</li>' +
+                    '<li>Kokeile myöhemmin uudelleen</li>' +
+                    '<li>Tarkista selaimen konsoli (F12) lisätiedoista</li>' +
+                    '</ul>' +
+                    '</div>';
             });
 
         function haeTyopaikat() {
@@ -205,21 +247,27 @@
                 return;
             }
             
-            document.getElementById('tyopaikat').innerHTML = '<p>Ladataan työpaikkoja...</p>';
+            document.getElementById('tyopaikat').innerHTML = '<p>⏳ Ladataan työpaikkoja...</p>';
             
-            // Haetaan valitun alan työpaikat
-            fetch(valittuAla)
+            // Haetaan valitun alan työpaikat CORS-proxyn kautta
+            fetch(corsProxy + encodeURIComponent(valittuAla))
                 .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP error! status: ' + response.status);
+                    }
                     return response.json();
                 })
                 .then(function(data) {
+                    console.log('Työpaikka-data:', data);
                     naytaTyopaikat(data);
                 })
                 .catch(function(error) {
                     console.error('Virhe työpaikkojen haussa:', error);
                     document.getElementById('tyopaikat').innerHTML = 
+                        '<div class="error-box">' +
                         '<p><strong>Virhe työpaikkojen haussa!</strong></p>' +
-                        '<p>Syy: ' + error.message + '</p>';
+                        '<p>Virheviesti: ' + error.message + '</p>' +
+                        '</div>';
                 });
         }
 
@@ -227,7 +275,7 @@
             var tyopaikatDiv = document.getElementById('tyopaikat');
             
             if (!tyopaikatData || tyopaikatData.length === 0) {
-                tyopaikatDiv.innerHTML = '<p>Ei avoimia työpaikkoja tällä alalla.</p>';
+                tyopaikatDiv.innerHTML = '<div class="info-box"><p>Ei avoimia työpaikkoja tällä alalla tällä hetkellä.</p></div>';
                 return;
             }
             
