@@ -158,7 +158,7 @@
         }
 
         // Haetaan ensin saatavilla olevat alat
-        fetch('http://gis.vantaa.fi/rest/tyopaikat/v1')
+        fetch('https://cors-anywhere.herokuapp.com/http://gis.vantaa.fi/rest/tyopaikat/v1')
             .then(function(response) {
                 return response.json();
             })
@@ -192,7 +192,7 @@
             document.getElementById('tyopaikat').innerHTML = '<p>Ladataan työpaikkoja...</p>';
             
             // Haetaan valitun alan työpaikat
-            fetch(valittuAla)
+            fetch('https://cors-anywhere.herokuapp.com/' + valittuAla)
                 .then(function(response) {
                     return response.json();
                 })
