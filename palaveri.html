@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palaveri</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topnav {
+            overflow: hidden;
+            background-color: #333;
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #04AA6D;
+            color: white;
+        }
+
+        .topnav .icon {
+            display: none;
+        }
+
+        @media screen and (max-width: 600px) {
+            .topnav a:not(:first-child) {display: none;}
+            .topnav a.icon {
+                float: right;
+                display: block;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .topnav.responsive {position: relative;}
+            .topnav.responsive .icon {
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            .topnav.responsive a {
+                float: none;
+                display: block;
+                text-align: left;
+            }
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        #palaveri {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="topnav" id="myTopnav">
+        <a href="index.html">Etusivu</a>
+        <a href="digicafe.html">Digi Cafe</a>
+        <a href="palaveri.html" class="active">Palaveri</a>
+        <a href="tyopaikat.html">Työpaikat</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+
+    <div class="container">
+        <h1>Palaveri</h1>
+        <div id="palaveri"></div>
+    </div>
+
+    <script>
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        // Fetch palaverin tiedot
+        fetch('https://oskarimyllys.github.io/oppimisteht-v-3a/palaveri.json')
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (responseJson) {
+                naytaPalaveri(responseJson);
+            })
+            .catch(function (error) {
+                document.getElementById("palaveri").innerHTML = 
+                    "<p>Tietoa ei pystytä hakemaan. Virhe: " + error + "</p>";
+            });
+
+        function naytaPalaveri(data) {
+            var teksti = "";
+            
+            // Palaverin aihe
+            teksti = "<h2>Palaverin tiedot</h2>";
+            teksti = teksti + "<p><strong>Aihe:</strong> " + data.aihe + "</p>";
+            
+            // Osallistujien lukumäärä
+            teksti = teksti + "<p><strong>Osallistujien lukumäärä:</strong> " + data.osallistujienLukumaara + "</p>";
+            
+            // Osallistujien nimet
+            teksti = teksti + "<p><strong>Osallistujat:</strong></p>";
+            teksti = teksti + "<ul>";
+            for(var i = 0; i < data.osallistujat.length; i++) {
+                teksti = teksti + "<li>" + data.osallistujat[i] + "</li>";
+            }
+            teksti = teksti + "</ul>";
+            
+            // Palaverin paikka
+            teksti = teksti + "<p><strong>Paikka:</strong> " + data.paikka + "</p>";
+            
+            // Alkamisaika (muotoillaan luettavampaan muotoon)
+            var alkuAika = new Date(data.alkaminen);
+            var muotoiltuAika = alkuAika.toLocaleDateString('fi-FI') + " klo " + 
+                               alkuAika.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
+            teksti = teksti + "<p><strong>Alkaminen:</strong> " + muotoiltuAika + "</p>";
+            
+            // Palaverin kesto
+            teksti = teksti + "<p><strong>Kesto:</strong> " + data.kesto + "</p>";
+            
+            // Tulostus
+            document.getElementById("palaveri").innerHTML = teksti;
+        }
+    </script>
+</body>
+</html>
