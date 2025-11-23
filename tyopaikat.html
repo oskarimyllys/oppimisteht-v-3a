@@ -114,6 +114,14 @@
         .lataa:hover {
             background-color: #038f5a;
         }
+
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -129,7 +137,13 @@
 
     <div class="container">
         <h1>Vantaan avoimet työpaikat</h1>
-        <p>Tässä näytetään Vantaan kaupungin avoimia työpaikkoja tekniseltä alalta.</p>
+        
+        <div class="info-box">
+            <strong>ℹ️ Tietoa:</strong> Tämä sivu hakee Vantaan kaupungin avoimia työpaikkoja tekniseltä alalta.
+            Käytetään CORS-proxy-palvelua, jotta haku toimii myös GitHub Pagesissa.
+        </div>
+
+        <p>Klikkaa nappia ladataksesi työpaikat:</p>
         <button class="lataa" onclick="lataatyopaikat()">Lataa työpaikat</button>
         <div id="tyopaikat"></div>
     </div>
@@ -144,22 +158,34 @@
             }
         }
 
-        // Funktio työpaikkojen lataamiseen
+        // Funktio työpaikkojen lataamiseen CORS-proxyn kautta
         function lataatyopaikat() {
-            document.getElementById("tyopaikat").innerHTML = "<p>Ladataan työpaikkoja...</p>";
+            document.getElementById("tyopaikat").innerHTML = "<p>⏳ Ladataan työpaikkoja...</p>";
             
-            // Haetaan Vantaan teknisen alan työpaikat
-            fetch('http://gis.vantaa.fi/rest/tyopaikat/v1/Tekninen%20ala')
+            // Vantaan API:n osoite
+            const vantaaAPI = 'http://gis.vantaa.fi/rest/tyopaikat/v1/Tekninen%20ala';
+            
+            // Käytetään CORS-proxya
+            const corsProxy = 'https://api.allorigins.win/get?url=';
+            const apiUrl = corsProxy + encodeURIComponent(vantaaAPI);
+            
+            fetch(apiUrl)
                 .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP virhe! Status: ' + response.status);
+                    }
                     return response.json();
                 })
-                .then(function (responseJson) {
+                .then(function (data) {
+                    // allorigins.win palauttaa datan 'contents' kentässä
+                    var responseJson = JSON.parse(data.contents);
                     naytaTyopaikat(responseJson);
                 })
                 .catch(function (error) {
+                    console.error('Virhe:', error);
                     document.getElementById("tyopaikat").innerHTML = 
-                        "<p>Tietoa ei pystytä hakemaan. Virhe: " + error + "</p>" +
-                        "<p>Huom: Vantaan API voi vaatia CORS-lisäosan tai ei ehkä ole enää toiminnassa.</p>";
+                        "<p style='color: red;'>❌ Tietoa ei pystytä hakemaan. Virhe: " + error + "</p>" +
+                        "<p>Vantaan API saattaa olla tilapäisesti poissa käytöstä.</p>";
                 });
         }
 
@@ -169,7 +195,7 @@
             
             // Tarkistetaan löytyykö työpaikkoja
             if (data && data.length > 0) {
-                teksti = "<h2>Löytyi " + data.length + " työpaikkaa</h2>";
+                teksti = "<h2>✅ Löytyi " + data.length + " työpaikkaa</h2>";
                 teksti = teksti + "<ul>";
                 
                 // Käydään läpi kaikki työpaikat
