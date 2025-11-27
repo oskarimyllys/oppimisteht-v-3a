@@ -199,11 +199,10 @@
                 teksti = "<p>Ei avoimia työpaikkoja tällä hetkellä.</p>";
             }
             
-            // Tulostus
+            
             document.getElementById("tyopaikat").innerHTML = teksti;
         }
 
-        // Ladataan työpaikat automaattisesti sivun latautuessa
         window.onload = function() {
             lataatyopaikat();
         };
