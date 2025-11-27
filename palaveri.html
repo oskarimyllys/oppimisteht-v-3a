@@ -134,7 +134,7 @@
             // Palaverin paikka
             teksti = teksti + "<p><strong>Paikka:</strong> " + data.paikka + "</p>";
             
-            // Alkamisaika (muotoillaan luettavampaan muotoon)
+            // Alkamisaika
             var alkuAika = new Date(data.alkaminen);
             var muotoiltuAika = alkuAika.toLocaleDateString('fi-FI') + " klo " + 
                                alkuAika.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
@@ -143,7 +143,7 @@
             // Palaverin kesto
             teksti = teksti + "<p><strong>Kesto:</strong> " + data.kesto + "</p>";
             
-            // Tulostus
+           
             document.getElementById("palaveri").innerHTML = teksti;
         }
     </script>
