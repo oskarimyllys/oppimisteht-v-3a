@@ -1,10 +1,9 @@
 
 fetch('https://oskarimyllys.github.io/oppimisteht-v-3a/cafe.json')
-    // Muunnetaan vastaus JSON muotoon
+    
     .then(function (response) {
         return response.json();
     })
-    // Käsitellään muunnettu (eli JSON muotoinen) vastaus
     .then(function (responseJson) {
         naytaCafe(responseJson);
     })
@@ -17,7 +16,6 @@ fetch('https://oskarimyllys.github.io/oppimisteht-v-3a/cafe.json')
 function naytaCafe(data) {
     var teksti = "";
     
-    // Yrityksen nimi
     teksti = "<h2>" + data.yritys + "</h2>";
     
     // Yhteystiedot
@@ -43,6 +41,6 @@ function naytaCafe(data) {
     }
     teksti = teksti + "</ul>";
     
-    // Tulostus
+    
     document.getElementById("vastaus").innerHTML = teksti;
 }
